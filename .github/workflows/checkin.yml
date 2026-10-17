@@ -1,0 +1,32 @@
+name: HoYoLAB daily check-in
+
+on:
+  schedule:
+    - cron: "10 23 * * *"   # 07:10 台灣時間 (UTC+8)，每天
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  check-in:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check in
+        run: python3 checkin.py
+        env:
+          HOYOLAB_COOKIE: ${{ secrets.HOYOLAB_COOKIE }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          GAMES: gi,hsr
+          HOYOLAB_LANG: zh-tw
+
+  # GitHub 會在 repo 60 天沒活動後自動停用排程，這步驟每天幫 workflow 續命
+  keepalive:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - uses: liskin/gh-workflow-keepalive@f72ff1a1336129f29bf0166c0fd0ca6cf1bcb38c # v1
