@@ -70,6 +70,33 @@ def sign(game: dict, cookie: str, lang: str) -> tuple[bool, str]:
     return icon == "✅", text
 
 
+def _get(url: str, headers: dict) -> dict:
+    req = urllib.request.Request(url, headers=headers, method="GET")
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        return json.loads(resp.read().decode())
+
+
+def today_reward(game: dict, cookie: str, lang: str) -> str:
+    """Return e.g. '冒險家的經驗 ×3' for the reward claimed today, or '' on failure."""
+    base = game["url"].rsplit("/", 1)[0]
+    headers = {
+        "Accept": "application/json, text/plain, */*",
+        "Origin": "https://act.hoyolab.com",
+        "Referer": "https://act.hoyolab.com/",
+        "User-Agent": UA,
+        "x-rpc-signgame": game["signgame"],
+        "Cookie": cookie,
+    }
+    try:
+        info = _get(f"{base}/info?lang={lang}&act_id={game['act_id']}", headers)["data"]
+        home = _get(f"{base}/home?lang={lang}&act_id={game['act_id']}", headers)["data"]
+        day = int(info.get("total_sign_day", 0))
+        award = home["awards"][day - 1] if day > 0 else None
+        return f"{award['name']} ×{award['cnt']}" if award else ""
+    except Exception:  # noqa: BLE001
+        return ""
+
+
 def notify(webhook: str, content: str) -> None:
     payload = json.dumps({"username": "HoYoLAB 自動簽到", "content": content}).encode()
     req = urllib.request.Request(
@@ -102,6 +129,10 @@ def main() -> int:
             time.sleep(1)
         ok, text = sign(game, cookie, lang)
         ok_all &= ok
+        if ok:
+            reward = today_reward(game, cookie, lang)
+            if reward:
+                text += f"，領取 {reward}"
         lines.append(f"{'✅' if ok else '❌'} {game['name']}：{text}")
 
     report = "\n".join(lines)
