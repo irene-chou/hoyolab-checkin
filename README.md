@@ -29,3 +29,15 @@ HOYOLAB_COOKIE='ltoken_v2=...; ltuid_v2=...' python3 checkin.py
 
 - `Cookie 失效`：重新登入 HoYoLAB 取新 cookie，`gh secret set HOYOLAB_COOKIE`。
 - `被圖形驗證擋下`：到 HoYoLAB 網頁手動簽到一次，通常之後就恢復。
+
+## 自動兌換碼
+
+`redeem.py` 每 6 小時從社群維護的兌換碼清單（seria.moe、ennead.cc）抓原神與星穹鐵道的有效碼並自動兌換，已處理過的碼記在 `redeemed.json`，只有「兌換成功」或錯誤才會推 Discord。
+
+需要另一個 Secret `HOYOLAB_REDEEM_COOKIE`，內容是同一個 HoYoLAB 登入的三個 cookie：
+
+```
+cookie_token_v2=...; account_mid_v2=...; account_id_v2=...
+```
+
+手動執行：`gh workflow run redeem.yml`
