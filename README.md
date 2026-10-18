@@ -41,3 +41,20 @@ cookie_token_v2=...; account_mid_v2=...; account_id_v2=...
 ```
 
 手動執行：`gh workflow run redeem.yml`
+
+## 多帳號
+
+帳號清單放 repo variable `ACCOUNTS`，格式 `名稱:遊戲;名稱:遊戲`，例如：
+
+```
+gh variable set ACCOUNTS -b 'main:gi,hsr;alt:hsr'
+```
+
+`main` 用無後綴的 secret（`HOYOLAB_COOKIE`、`HOYOLAB_REDEEM_COOKIE`），其他帳號用大寫名稱當後綴：
+
+```
+gh secret set HOYOLAB_COOKIE_ALT -b 'ltoken_v2=...; ltuid_v2=...'
+gh secret set HOYOLAB_REDEEM_COOKIE_ALT -b 'cookie_token_v2=...; account_mid_v2=...; account_id_v2=...'
+```
+
+通知合併在同一則 Discord 訊息，以帳號名稱分段。

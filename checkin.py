@@ -14,6 +14,8 @@ import time
 import urllib.request
 import urllib.error
 
+from accounts import parse_accounts, secret, shared
+
 GAMES = {
     "gi": {
         "name": "原神",
@@ -109,15 +111,10 @@ def notify(webhook: str, content: str) -> None:
         print(f"Discord 通知失敗: {e}", file=sys.stderr)
 
 
-def main() -> int:
-    cookie = os.environ.get("HOYOLAB_COOKIE", "").strip()
+def run_account(name: str, games: list[str], lang: str) -> tuple[bool, list[str]]:
+    cookie = secret("HOYOLAB_COOKIE", name)
     if not cookie:
-        print("缺少 HOYOLAB_COOKIE", file=sys.stderr)
-        return 1
-    lang = os.environ.get("HOYOLAB_LANG", "zh-tw")
-    games = [g.strip() for g in os.environ.get("GAMES", "gi,hsr").split(",") if g.strip()]
-    webhook = os.environ.get("DISCORD_WEBHOOK", "").strip()
-
+        return False, [f"❌ 缺少 HOYOLAB_COOKIE{'' if name == 'main' else '_' + name.upper()}"]
     lines, ok_all = [], True
     for i, key in enumerate(games):
         game = GAMES.get(key)
@@ -134,8 +131,23 @@ def main() -> int:
             if reward:
                 text += f"，領取 {reward}"
         lines.append(f"{'✅' if ok else '❌'} {game['name']}：{text}")
+    return ok_all, lines
 
-    report = "\n".join(lines)
+
+def main() -> int:
+    lang = os.environ.get("HOYOLAB_LANG", "zh-tw")
+    webhook = shared("DISCORD_WEBHOOK")
+    accounts = parse_accounts()
+    multi = len(accounts) > 1
+
+    blocks, ok_all = [], True
+    for name, games in accounts:
+        ok, lines = run_account(name, games, lang)
+        ok_all &= ok
+        header = [f"【{name}】"] if multi else []
+        blocks.append("\n".join(header + lines))
+
+    report = "\n\n".join(blocks)
     print(report)
     if webhook:
         notify(webhook, ("⚠️ 簽到有問題\n" if not ok_all else "") + report)

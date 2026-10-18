@@ -22,6 +22,8 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+from accounts import parse_accounts, secret, shared
+
 STATE = Path(__file__).with_name("redeemed.json")
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
@@ -139,40 +141,50 @@ def notify(webhook: str, content: str) -> None:
         print(f"Discord 通知失敗: {e}", file=sys.stderr)
 
 
-def main() -> int:
-    cookie = os.environ.get("HOYOLAB_REDEEM_COOKIE", "").strip()
-    if "cookie_token_v2" not in cookie:
-        cookie = os.environ.get("HOYOLAB_COOKIE", "").strip()
-    if "cookie_token_v2" not in cookie:
-        print("缺少 HOYOLAB_REDEEM_COOKIE（需含 cookie_token_v2、account_mid_v2、account_id_v2）", file=sys.stderr)
-        return 1
-    lang = os.environ.get("HOYOLAB_LANG", "zh-tw")
-    games = [g.strip() for g in os.environ.get("GAMES", "gi,hsr").split(",") if g.strip()]
-    webhook = os.environ.get("DISCORD_WEBHOOK", "").strip()
+def load_state() -> dict:
+    state = json.loads(STATE.read_text()) if STATE.exists() else {}
+    # migrate old single-account layout {"gi": {...}, "hsr": {...}} -> {"main": {...}}
+    if state and all(k in GAMES for k in state):
+        state = {"main": state}
+    return state
 
-    state: dict[str, dict[str, str]] = json.loads(STATE.read_text()) if STATE.exists() else {}
+
+def redeem_cookie(name: str) -> str:
+    cookie = secret("HOYOLAB_REDEEM_COOKIE", name)
+    if "cookie_token_v2" not in cookie:
+        cookie = secret("HOYOLAB_COOKIE", name)
+    return cookie if "cookie_token_v2" in cookie else ""
+
+
+def run_account(name: str, games: list[str], lang: str, state: dict,
+                codes_by_game: dict[str, dict[str, str]]) -> tuple[list[str], list[str], bool]:
+    tag = f"[{name}] "
     notes, errors, changed = [], [], False
-
+    cookie = redeem_cookie(name)
+    if not cookie:
+        suffix = "" if name == "main" else "_" + name.upper()
+        return notes, [f"❌ {tag}缺少 HOYOLAB_REDEEM_COOKIE{suffix}（需含 cookie_token_v2、account_mid_v2、account_id_v2）"], False
+    acct = state.setdefault(name, {})
     for key in games:
         game = GAMES.get(key)
         if not game:
             continue
-        done = state.setdefault(key, {})
-        codes = fetch_codes(game)
+        done = acct.setdefault(key, {})
+        codes = codes_by_game.setdefault(key, fetch_codes(game))
         todo = {c: r for c, r in codes.items() if c not in done}
-        print(f"[{game['name']}] 來源 {len(codes)} 組，待處理 {len(todo)} 組")
+        print(f"{tag}[{game['name']}] 來源 {len(codes)} 組，待處理 {len(todo)} 組")
         if not todo:
             continue
         try:
             role = get_role(game, cookie, lang)
             if not role:
-                errors.append(f"❌ {game['name']}：此帳號沒有角色")
+                errors.append(f"❌ {tag}{game['name']}：此帳號沒有角色")
                 continue
             for i, (code, reward) in enumerate(todo.items()):
                 if i:
                     time.sleep(COOLDOWN)
                 final, msg = redeem(game, role, code, cookie, lang)
-                line = f"{game['name']} {code}：{msg}" + (f"（{reward}）" if reward else "")
+                line = f"{tag}{game['name']} {code}：{msg}" + (f"（{reward}）" if reward else "")
                 print(line)
                 if final:
                     done[code] = msg
@@ -182,9 +194,24 @@ def main() -> int:
                 elif "未知" in msg:
                     errors.append("❓ " + line)
         except PermissionError:
-            errors.append(f"❌ {game['name']}：兌換用 cookie 失效，請更新 HOYOLAB_REDEEM_COOKIE")
+            errors.append(f"❌ {tag}兌換用 cookie 失效，請更新 HOYOLAB_REDEEM_COOKIE")
         except Exception as e:  # noqa: BLE001
-            errors.append(f"❌ {game['name']}：{e}")
+            errors.append(f"❌ {tag}{game['name']}：{e}")
+    return notes, errors, changed
+
+
+def main() -> int:
+    lang = os.environ.get("HOYOLAB_LANG", "zh-tw")
+    webhook = shared("DISCORD_WEBHOOK")
+    state = load_state()
+    codes_by_game: dict[str, dict[str, str]] = {}
+    notes, errors, changed = [], [], False
+
+    for name, games in parse_accounts():
+        n, e, c = run_account(name, games, lang, state, codes_by_game)
+        notes += n
+        errors += e
+        changed |= c
 
     if changed:
         STATE.write_text(json.dumps(state, ensure_ascii=False, indent=2, sort_keys=True) + "\n")

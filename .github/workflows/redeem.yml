@@ -21,10 +21,8 @@ jobs:
       - name: Redeem codes
         run: python3 redeem.py
         env:
-          HOYOLAB_REDEEM_COOKIE: ${{ secrets.HOYOLAB_REDEEM_COOKIE }}
-          HOYOLAB_COOKIE: ${{ secrets.HOYOLAB_COOKIE }}
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          GAMES: gi,hsr
+          ACCOUNTS: ${{ vars.ACCOUNTS }}
+          SECRETS_JSON: ${{ toJSON(secrets) }}
           HOYOLAB_LANG: zh-tw
       - name: Save state
         if: always()

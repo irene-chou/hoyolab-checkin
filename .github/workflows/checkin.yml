@@ -17,9 +17,8 @@ jobs:
       - name: Check in
         run: python3 checkin.py
         env:
-          HOYOLAB_COOKIE: ${{ secrets.HOYOLAB_COOKIE }}
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          GAMES: gi,hsr
+          ACCOUNTS: ${{ vars.ACCOUNTS }}
+          SECRETS_JSON: ${{ toJSON(secrets) }}
           HOYOLAB_LANG: zh-tw
 
   # GitHub 會在 repo 60 天沒活動後自動停用排程，這步驟每天幫 workflow 續命
