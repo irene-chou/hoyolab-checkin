@@ -1,26 +1,18 @@
 """Shared multi-account config for checkin.py and redeem.py.
 
-ACCOUNTS      repo variable, e.g. "main:gi,hsr;alt:hsr" (default "main:gi,hsr")
-SECRETS_JSON  all GitHub secrets as JSON (toJSON(secrets)); falls back to os.environ
+ACCOUNTS  repo variable, e.g. "main:gi,hsr;alt:hsr" (default "main:gi,hsr")
+Secrets are read from env vars; the workflow must list each account's secrets.
 
 Secret naming: account "main" uses the plain name (HOYOLAB_COOKIE), any other
 account uses a suffix (HOYOLAB_COOKIE_ALT). HOYOLAB_COOKIE_MAIN also works.
 """
 from __future__ import annotations
 
-import json
 import os
 
 
 def _secrets() -> dict[str, str]:
-    raw = os.environ.get("SECRETS_JSON", "").strip()
-    data = {}
-    if raw:
-        try:
-            data = json.loads(raw)
-        except json.JSONDecodeError:
-            pass
-    return {**os.environ, **{k: str(v) for k, v in data.items()}}
+    return dict(os.environ)
 
 
 def parse_accounts(default_games: str = "gi,hsr") -> list[tuple[str, list[str]]]:
