@@ -44,13 +44,13 @@ cookie_token_v2=...; account_mid_v2=...; account_id_v2=...
 
 ## 多帳號
 
-帳號清單放 repo variable `ACCOUNTS`，格式 `名稱:遊戲;名稱:遊戲`（遊戲代碼：`gi` 原神、`hsr` 星穹鐵道、`zzz` 絕區零），例如：
+帳號清單放 repo variable `ACCOUNTS`，格式 `名稱@SECRET後綴:遊戲;...`（遊戲代碼：`gi` 原神、`hsr` 星穹鐵道、`zzz` 絕區零），例如：
 
 ```
-gh variable set ACCOUNTS -b 'main:gi,hsr;alt:hsr'
+gh variable set ACCOUNTS -b 'player1@MAIN:gi,hsr;player2@ALT:gi,zzz'
 ```
 
-`main` 用無後綴的 secret（`HOYOLAB_COOKIE`、`HOYOLAB_REDEEM_COOKIE`），其他帳號用大寫名稱當後綴：
+名稱只用於通知顯示與 `redeemed.json`。`@` 後面是 secret 後綴，省略時等於名稱大寫；後綴 `MAIN` 代表無後綴的 secret（`HOYOLAB_COOKIE`、`HOYOLAB_REDEEM_COOKIE`），其他後綴直接接在 secret 名稱後：
 
 ```
 gh secret set HOYOLAB_COOKIE_ALT -b 'ltoken_v2=...; ltuid_v2=...'

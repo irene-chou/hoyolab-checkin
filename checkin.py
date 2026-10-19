@@ -117,10 +117,10 @@ def notify(webhook: str, content: str) -> None:
         print(f"Discord 通知失敗: {e}", file=sys.stderr)
 
 
-def run_account(name: str, games: list[str], lang: str) -> tuple[bool, list[str]]:
-    cookie = secret("HOYOLAB_COOKIE", name)
+def run_account(suffix: str, games: list[str], lang: str) -> tuple[bool, list[str]]:
+    cookie = secret("HOYOLAB_COOKIE", suffix)
     if not cookie:
-        return False, [f"❌ 缺少 HOYOLAB_COOKIE{'' if name == 'main' else '_' + name.upper()}"]
+        return False, [f"❌ 缺少 HOYOLAB_COOKIE{'' if suffix == 'MAIN' else '_' + suffix}"]
     lines, ok_all = [], True
     for i, key in enumerate(games):
         game = GAMES.get(key)
@@ -147,8 +147,8 @@ def main() -> int:
     multi = len(accounts) > 1
 
     blocks, ok_all = [], True
-    for name, games in accounts:
-        ok, lines = run_account(name, games, lang)
+    for name, suffix, games in accounts:
+        ok, lines = run_account(suffix, games, lang)
         ok_all &= ok
         header = [f"【{name}】"] if multi else []
         blocks.append("\n".join(header + lines))

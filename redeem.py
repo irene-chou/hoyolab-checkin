@@ -163,21 +163,21 @@ def load_state() -> dict:
     return state
 
 
-def redeem_cookie(name: str) -> str:
-    cookie = secret("HOYOLAB_REDEEM_COOKIE", name)
+def redeem_cookie(suffix: str) -> str:
+    cookie = secret("HOYOLAB_REDEEM_COOKIE", suffix)
     if "cookie_token_v2" not in cookie:
-        cookie = secret("HOYOLAB_COOKIE", name)
+        cookie = secret("HOYOLAB_COOKIE", suffix)
     return cookie if "cookie_token_v2" in cookie else ""
 
 
-def run_account(name: str, games: list[str], lang: str, state: dict,
+def run_account(name: str, suffix: str, games: list[str], lang: str, state: dict,
                 codes_by_game: dict[str, dict[str, str]]) -> tuple[list[str], list[str], bool]:
     tag = f"[{name}] "
     notes, errors, changed = [], [], False
-    cookie = redeem_cookie(name)
+    cookie = redeem_cookie(suffix)
     if not cookie:
-        suffix = "" if name == "main" else "_" + name.upper()
-        return notes, [f"❌ {tag}缺少 HOYOLAB_REDEEM_COOKIE{suffix}（需含 cookie_token_v2、account_mid_v2、account_id_v2）"], False
+        sfx = "" if suffix == "MAIN" else "_" + suffix
+        return notes, [f"❌ {tag}缺少 HOYOLAB_REDEEM_COOKIE{sfx}（需含 cookie_token_v2、account_mid_v2、account_id_v2）"], False
     acct = state.setdefault(name, {})
     for key in games:
         game = GAMES.get(key)
@@ -221,8 +221,8 @@ def main() -> int:
     codes_by_game: dict[str, dict[str, str]] = {}
     notes, errors, changed = [], [], False
 
-    for name, games in parse_accounts():
-        n, e, c = run_account(name, games, lang, state, codes_by_game)
+    for name, suffix, games in parse_accounts():
+        n, e, c = run_account(name, suffix, games, lang, state, codes_by_game)
         notes += n
         errors += e
         changed |= c
