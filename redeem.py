@@ -49,6 +49,16 @@ GAMES = {
             ("https://api.ennead.cc/mihoyo/starrail/codes", "active"),
         ],
     },
+    "zzz": {
+        "name": "絕區零",
+        "biz": "nap_global",
+        "redeem": "https://public-operation-nap.hoyoverse.com/common/apicdkey/api/webExchangeCdkey",
+        "method": "GET",
+        "sources": [
+            ("https://hoyo-codes.seria.moe/codes?game=nap", "codes"),
+            ("https://api.ennead.cc/mihoyo/zenless/codes", "active"),
+        ],
+    },
 }
 
 # retcode -> (final?, message)
@@ -112,12 +122,16 @@ def get_role(game: dict, cookie: str, lang: str) -> dict | None:
     return roles[0] if roles else None
 
 
+def key_of(game: dict) -> str:
+    return next(k for k, v in GAMES.items() if v is game)
+
+
 def redeem(game: dict, role: dict, code: str, cookie: str, lang: str) -> tuple[bool, str]:
     params = {
         "uid": role["game_uid"], "region": role["region"], "lang": lang,
         "cdkey": code, "game_biz": game["biz"], "sLangKey": lang,
     }
-    if game["method"] == "POST":
+    if game["method"] == "POST" or key_of(game) == "zzz":
         params["t"] = int(time.time() * 1000)
     for attempt in range(2):
         data = request(game["redeem"], cookie, game["method"], params)

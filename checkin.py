@@ -29,6 +29,12 @@ GAMES = {
         "act_id": "e202303301540311",
         "signgame": "hkrpg",
     },
+    "zzz": {
+        "name": "絕區零",
+        "url": "https://sg-act-nap-api.hoyolab.com/event/luna/zzz/os/sign",
+        "act_id": "e202406031448091",
+        "signgame": "zzz",
+    },
 }
 
 MESSAGES = {

@@ -44,7 +44,7 @@ cookie_token_v2=...; account_mid_v2=...; account_id_v2=...
 
 ## 多帳號
 
-帳號清單放 repo variable `ACCOUNTS`，格式 `名稱:遊戲;名稱:遊戲`，例如：
+帳號清單放 repo variable `ACCOUNTS`，格式 `名稱:遊戲;名稱:遊戲`（遊戲代碼：`gi` 原神、`hsr` 星穹鐵道、`zzz` 絕區零），例如：
 
 ```
 gh variable set ACCOUNTS -b 'main:gi,hsr;alt:hsr'
