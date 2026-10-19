@@ -1,6 +1,6 @@
 # hoyolab-checkin
 
-每天 07:10（台灣時間）透過 GitHub Actions 自動在 HoYoLAB 簽到原神、星穹鐵道，並把結果推到 Discord。
+每天 00:10（台灣時間）透過 GitHub Actions 自動在 HoYoLAB 簽到原神、星穹鐵道，並把結果推到 Discord。
 
 ## 設定
 
