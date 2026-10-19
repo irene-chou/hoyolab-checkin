@@ -1,5 +1,26 @@
 {
-  "player1": {
+  "alt": {
+    "gi": {
+      "6LS3F3LS5K87": "兌換成功",
+      "DATG5HG1PL89": "兌換成功",
+      "EPIC2026": "兌換成功",
+      "NEEI8A8341OW": "已經兌換過",
+      "NEEI986K5X6R": "已經兌換過",
+      "NEEIJB764CA3": "兌換成功",
+      "OKTCV81F9H8D": "兌換成功",
+      "OPERACOLLAB": "兌換成功",
+      "PNKZ3WLNN8G6": "兌換成功",
+      "VESNAONPATROL": "兌換成功",
+      "Y6JYMKV6JKSL": "已經兌換過"
+    },
+    "zzz": {
+      "ZENLESSGIFT": "兌換成功",
+      "ZZZGRIND32": "兌換成功",
+      "ZZZINK32": "兌換成功",
+      "ZZZVOID32": "兌換成功"
+    }
+  },
+  "main": {
     "gi": {
       "6LS3F3LS5K87": "兌換成功",
       "DATG5HG1PL89": "兌換成功",
@@ -24,27 +45,6 @@
       "PEARLAPPRAISE": "兌換成功",
       "RT4BPNA8FBS3": "兌換成功",
       "STARRAILGIFT": "兌換成功"
-    }
-  },
-  "player2": {
-    "gi": {
-      "6LS3F3LS5K87": "兌換成功",
-      "DATG5HG1PL89": "兌換成功",
-      "EPIC2026": "兌換成功",
-      "NEEI8A8341OW": "已經兌換過",
-      "NEEI986K5X6R": "已經兌換過",
-      "NEEIJB764CA3": "兌換成功",
-      "OKTCV81F9H8D": "兌換成功",
-      "OPERACOLLAB": "兌換成功",
-      "PNKZ3WLNN8G6": "兌換成功",
-      "VESNAONPATROL": "兌換成功",
-      "Y6JYMKV6JKSL": "已經兌換過"
-    },
-    "zzz": {
-      "ZENLESSGIFT": "兌換成功",
-      "ZZZGRIND32": "兌換成功",
-      "ZZZINK32": "兌換成功",
-      "ZZZVOID32": "兌換成功"
     }
   }
 }
