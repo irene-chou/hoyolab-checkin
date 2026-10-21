@@ -34,11 +34,15 @@ HOYOLAB_COOKIE='ltoken_v2=...; ltuid_v2=...' python3 checkin.py
 
 `redeem.py` 每 6 小時從社群維護的兌換碼清單（seria.moe、ennead.cc）抓原神與星穹鐵道的有效碼並自動兌換，已處理過的碼記在 `redeemed.json`，只有「兌換成功」或錯誤才會推 Discord。
 
-需要另一個 Secret `HOYOLAB_REDEEM_COOKIE`，內容是同一個 HoYoLAB 登入的三個 cookie：
+需要另一個 Secret `HOYOLAB_REDEEM_COOKIE`，內容至少要有 `cookie_token_v2`（`account_mid_v2`、`account_id_v2` 可一併附上，缺少時會從 `HOYOLAB_COOKIE` 補）：
 
 ```
-cookie_token_v2=...; account_mid_v2=...; account_id_v2=...
+cookie_token_v2=...
 ```
+
+取法：開 https://genshin.hoyoverse.com/gift 登入 → DevTools → Application → Cookies → `https://genshin.hoyoverse.com` → 複製 `cookie_token_v2`。
+注意：在 hoyolab.com 重新登入只會換 `ltoken_v2`，不會換發 `cookie_token_v2`；舊值失效時務必從兌換頁重新登入取得。
+在同一瀏覽器切換登入另一個帳號會讓前一個帳號的 token 失效，操作第二個帳號請用無痕視窗。
 
 手動執行：`gh workflow run redeem.yml`
 
