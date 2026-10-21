@@ -209,6 +209,7 @@ def run_account(name: str, suffix: str, games: list[str], lang: str, state: dict
                     errors.append("❓ " + line)
         except PermissionError:
             errors.append(f"❌ {tag}兌換用 cookie 失效，請更新 HOYOLAB_REDEEM_COOKIE")
+            break  # same cookie for every game of this account; no point continuing
         except Exception as e:  # noqa: BLE001
             errors.append(f"❌ {tag}{game['name']}：{e}")
     return notes, errors, changed
