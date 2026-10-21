@@ -117,6 +117,7 @@ def get_role(game: dict, cookie: str, lang: str) -> dict | None:
     data = request("https://api-account-os.hoyolab.com/binding/api/getUserGameRolesByCookie",
                    cookie, params={"game_biz": game["biz"], "lang": lang})
     if data.get("retcode") in COOKIE_ERRORS:
+        print(f"[debug] getUserGameRolesByCookie retcode={data.get('retcode')} message={data.get('message')}")
         raise PermissionError("cookie")
     roles = (data.get("data") or {}).get("list") or []
     return roles[0] if roles else None
@@ -137,6 +138,7 @@ def redeem(game: dict, role: dict, code: str, cookie: str, lang: str) -> tuple[b
         data = request(game["redeem"], cookie, game["method"], params)
         rc = data.get("retcode")
         if rc in COOKIE_ERRORS:
+            print(f"[debug] redeem retcode={rc} message={data.get('message')}")
             raise PermissionError("cookie")
         final, msg = RESULTS.get(rc, (False, f"未知結果 retcode={rc} {data.get('message')}"))
         if final or attempt:
