@@ -166,10 +166,10 @@ def load_state() -> dict:
 
 
 def redeem_cookie(suffix: str) -> str:
-    cookie = secret("HOYOLAB_REDEEM_COOKIE", suffix)
-    if "cookie_token_v2" not in cookie:
-        cookie = secret("HOYOLAB_COOKIE", suffix)
-    return cookie if "cookie_token_v2" in cookie else ""
+    """Combine the redeem cookie (cookie_token_v2 ...) with the login cookie (ltoken_v2 ...)."""
+    parts = [secret("HOYOLAB_REDEEM_COOKIE", suffix), secret("HOYOLAB_COOKIE", suffix)]
+    cookie = "; ".join(p.strip().rstrip(";") for p in parts if p.strip())
+    return cookie if "cookie_token_v2" in cookie or "ltoken_v2" in cookie else ""
 
 
 def run_account(name: str, suffix: str, games: list[str], lang: str, state: dict,
