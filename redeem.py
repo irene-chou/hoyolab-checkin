@@ -165,11 +165,32 @@ def load_state() -> dict:
     return state
 
 
+def _cookie_dict(raw: str) -> dict[str, str]:
+    out = {}
+    for part in raw.split(";"):
+        k, _, v = part.strip().partition("=")
+        if k and v:
+            out[k.strip()] = v.strip()
+    return out
+
+
 def redeem_cookie(suffix: str) -> str:
-    """Combine the redeem cookie (cookie_token_v2 ...) with the login cookie (ltoken_v2 ...)."""
-    parts = [secret("HOYOLAB_REDEEM_COOKIE", suffix), secret("HOYOLAB_COOKIE", suffix)]
-    cookie = "; ".join(p.strip().rstrip(";") for p in parts if p.strip())
-    return cookie if "cookie_token_v2" in cookie or "ltoken_v2" in cookie else ""
+    """Build the redeem cookie from the login cookie (ltoken_v2) plus account ids.
+
+    Experiment: omit cookie_token_v2 entirely; derive ltmid_v2 from account_mid_v2.
+    """
+    login = _cookie_dict(secret("HOYOLAB_COOKIE", suffix))
+    extra = _cookie_dict(secret("HOYOLAB_REDEEM_COOKIE", suffix))
+    if "ltoken_v2" not in login:
+        return ""
+    c = {"ltoken_v2": login["ltoken_v2"], "ltuid_v2": login.get("ltuid_v2", extra.get("account_id_v2", ""))}
+    mid = login.get("ltmid_v2") or extra.get("account_mid_v2")
+    if mid:
+        c["ltmid_v2"] = mid
+        c["account_mid_v2"] = mid
+    c["account_id_v2"] = extra.get("account_id_v2", c["ltuid_v2"])
+    print(f"[debug] redeem cookie keys: {sorted(c)}")
+    return "; ".join(f"{k}={v}" for k, v in c.items() if v)
 
 
 def run_account(name: str, suffix: str, games: list[str], lang: str, state: dict,
