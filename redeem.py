@@ -175,21 +175,16 @@ def _cookie_dict(raw: str) -> dict[str, str]:
 
 
 def redeem_cookie(suffix: str) -> str:
-    """Merge the redeem cookie (cookie_token_v2, account_mid_v2, account_id_v2) with the
-    login cookie (ltoken_v2, ltuid_v2) and fill in ltmid_v2, mimicking a browser session."""
-    c = _cookie_dict(secret("HOYOLAB_COOKIE", suffix))
-    c.update(_cookie_dict(secret("HOYOLAB_REDEEM_COOKIE", suffix)))
+    """Only cookie_token_v2 + account ids. Never include ltoken_v2: when a valid ltoken_v2
+    is present the redeem endpoint answers -1071 (please log in) and ignores cookie_token_v2."""
+    login = _cookie_dict(secret("HOYOLAB_COOKIE", suffix))
+    c = _cookie_dict(secret("HOYOLAB_REDEEM_COOKIE", suffix))
     if "cookie_token_v2" not in c:
         return ""
-    mid = c.get("ltmid_v2") or c.get("account_mid_v2")
-    if mid:
-        c.setdefault("ltmid_v2", mid)
-        c.setdefault("account_mid_v2", mid)
-    uid = c.get("ltuid_v2") or c.get("account_id_v2")
-    if uid:
-        c.setdefault("ltuid_v2", uid)
-        c.setdefault("account_id_v2", uid)
-    return "; ".join(f"{k}={v}" for k, v in c.items())
+    c.setdefault("account_id_v2", login.get("ltuid_v2", ""))
+    if login.get("ltmid_v2"):
+        c.setdefault("account_mid_v2", login["ltmid_v2"])
+    return "; ".join(f"{k}={v}" for k, v in c.items() if k.startswith(("cookie_token", "account_")) and v)
 
 
 def run_account(name: str, suffix: str, games: list[str], lang: str, state: dict,
