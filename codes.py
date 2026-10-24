@@ -50,6 +50,52 @@ GAMES = {
     },
 }
 
+# English item names from the code lists -> zh-TW in-game names. Unknown names stay in English.
+ZH = {
+    # 原神
+    "Primogem": "原石", "Mora": "摩拉", "Hero's Wit": "大英雄的經驗",
+    "Adventurer's Experience": "冒險家的經驗", "Wanderer's Advice": "流浪者的經驗",
+    "Mystic Enhancement Ore": "精鍛用魔礦", "Fine Enhancement Ore": "精鍛用良礦",
+    "Enhancement Ore": "精鍛用雜礦", "Jueyun Chili Chicken": "絕雲鍋巴",
+    "Fragile Resin": "脆弱樹脂",
+    # 星穹鐵道
+    "Stellar Jade": "星瓊", "Credit": "信用點", "Traveler's Guide": "漫遊指南",
+    "Adventure Log": "冒險記錄", "Travel Encounters": "旅情見聞",
+    "Refined Aether": "提純以太", "Condensed Aether": "凝縮以太",
+    "Lost Gold Fragment": "失落金塊", "Lost Crystal": "失落晶塊", "Lost Lightdust": "失落塵金",
+    "Fuel": "燃料", "Bottled Soda": "瓶裝汽水", "Cold Joke": "冷笑話",
+    # 絕區零
+    "Polychrome": "菲林", "Denny": "丁尼", "Dennies": "丁尼",
+    "Official Investigator Log": "調查員紀錄", "Senior Investigator Log": "資深調查員紀錄",
+    "Investigator Log": "初級調查員紀錄",
+    "W-Engine Power Supply": "音擎電源", "W-Engine Power Supplies": "音擎電源", "W-Engine Energy Module": "音擎能源模組",
+    "Bangboo Algorithm Module": "邦布演算法模組", "Bangboo System Widget": "邦布系統插件",
+    "Free items": "未公開獎勵",
+}
+_ZH_RE = re.compile("|".join(re.escape(k) + "s?" for k in sorted(ZH, key=len, reverse=True)
+                             if k != "Dennies"), re.IGNORECASE)
+_ZH_LOWER = {k.lower(): v for k, v in ZH.items()}
+
+
+_NUM_WORDS = {"one": "1", "two": "2", "three": "3", "four": "4", "five": "5", "six": "6",
+              "seven": "7", "eight": "8", "nine": "9", "ten": "10"}
+
+
+def translate(text: str) -> str:
+    """Translate item names; also tidy free-text lists like '30 stellar jade, two fuel, and 20k credits'."""
+    text = text.replace("\u2019", "'").replace("\u00a0", " ")
+    text = re.sub(r"\b(\d+)k\b", lambda m: m.group(1) + "000", text)
+    text = re.sub(r"\b(" + "|".join(_NUM_WORDS) + r")\b", lambda m: _NUM_WORDS[m.group(1).lower()], text, flags=re.IGNORECASE)
+    text = re.sub(r",?\s+and\s+|,\s+", "、", text)
+
+    def repl(m: re.Match) -> str:
+        w = m.group(0).lower()
+        return _ZH_LOWER.get(w) or _ZH_LOWER.get(w[:-1], m.group(0))
+    text = _ZH_RE.sub(repl, text)
+    # "60 星瓊" -> "星瓊 ×60" so free-text and structured sources look the same
+    return "、".join(re.sub(r"^(\d[\d,]*) (.+)$", r"\2 ×\1", seg.strip()) if "×" not in seg else seg.strip()
+                    for seg in text.split("、"))
+
 
 def fetch_codes(game: dict) -> tuple[dict[str, str], int]:
     """Returns ({code: rewards}, number of sources that answered)."""
@@ -68,9 +114,9 @@ def fetch_codes(game: dict) -> tuple[dict[str, str], int]:
                 rewards = item.get("rewards", "")
                 if isinstance(rewards, list):
                     rewards = "、".join(rewards)
-                rewards = re.sub(r"\s*\*\s*(?=\d)", " ×", str(rewards).replace(";", "、")).strip()
-                if rewards or code not in codes:
-                    codes[code] = rewards or codes.get(code, "")
+                rewards = translate(re.sub(r"\s*[x\*]\s*(?=\d)", " ×", str(rewards).replace(";", "、")).strip())
+                if code not in codes or (rewards and not codes[code]):
+                    codes[code] = rewards
         except Exception as e:  # noqa: BLE001
             print(f"[{game['name']}] 兌換碼來源失敗 {url}: {e}", file=sys.stderr)
     return codes, ok
