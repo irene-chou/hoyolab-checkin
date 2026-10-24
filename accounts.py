@@ -1,4 +1,4 @@
-"""Shared multi-account config for checkin.py and redeem.py.
+"""Shared multi-account config for checkin.py and codes.py.
 
 ACCOUNTS  repo variable, e.g. "player1@MAIN:gi,hsr;player2@ALT:zzz" (default "main:gi,hsr")
           name       display label used in notifications and redeemed.json

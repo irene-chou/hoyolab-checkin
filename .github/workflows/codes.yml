@@ -1,4 +1,4 @@
-name: HoYoLAB redeem codes
+name: HoYoLAB gift codes
 
 on:
   schedule:
@@ -8,34 +8,29 @@ on:
 permissions: {}
 
 concurrency:
-  group: redeem
+  group: codes
   cancel-in-progress: false
 
 jobs:
-  redeem:
+  codes:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Redeem codes
-        run: python3 redeem.py
+      - name: Find new codes
+        run: python3 codes.py
         env:
           ACCOUNTS: ${{ vars.ACCOUNTS }}
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          HOYOLAB_COOKIE: ${{ secrets.HOYOLAB_COOKIE }}
-          HOYOLAB_REDEEM_COOKIE: ${{ secrets.HOYOLAB_REDEEM_COOKIE }}
-          HOYOLAB_COOKIE_ALT: ${{ secrets.HOYOLAB_COOKIE_ALT }}
-          HOYOLAB_REDEEM_COOKIE_ALT: ${{ secrets.HOYOLAB_REDEEM_COOKIE_ALT }}
-          HOYOLAB_LANG: zh-tw
       - name: Save state
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if ! git diff --quiet -- redeemed.json || [ -n "$(git ls-files --others --exclude-standard redeemed.json)" ]; then
-            git add redeemed.json
-            git commit -m "Update redeemed codes [skip ci]"
+          if ! git diff --quiet -- codes.json || [ -n "$(git ls-files --others --exclude-standard codes.json)" ]; then
+            git add codes.json
+            git commit -m "Update announced codes [skip ci]"
             git pull --rebase
             git push
           fi

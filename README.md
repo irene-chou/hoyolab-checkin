@@ -30,21 +30,13 @@ HOYOLAB_COOKIE='ltoken_v2=...; ltuid_v2=...' python3 checkin.py
 - `Cookie 失效`：重新登入 HoYoLAB 取新 cookie，`gh secret set HOYOLAB_COOKIE`。
 - `被圖形驗證擋下`：到 HoYoLAB 網頁手動簽到一次，通常之後就恢復。
 
-## 自動兌換碼
+## 兌換碼通知
 
-`redeem.py` 每 6 小時從社群維護的兌換碼清單（seria.moe、ennead.cc）抓原神與星穹鐵道的有效碼並自動兌換，已處理過的碼記在 `redeemed.json`，只有「兌換成功」或錯誤才會推 Discord。
+`codes.py` 每 6 小時從社群維護的兌換碼清單（ennead.cc、seria.moe）抓 `ACCOUNTS` 裡有的遊戲的有效碼，發現新碼就推 Discord，附獎勵內容與官方兌換頁連結（點開連結後登入即可兌換）。已通知過的碼記在 `codes.json`，由 workflow 自動 commit。
 
-需要另一個 Secret `HOYOLAB_REDEEM_COOKIE`，內容至少要有 `cookie_token_v2`（`account_mid_v2`、`account_id_v2` 可一併附上，缺少時會從 `HOYOLAB_COOKIE` 補）：
+不需要任何 HoYoLAB cookie。原本的自動兌換因為兌換用的 `cookie_token_v2` 幾天就失效、且國際服沒有不需帳密登入的續期方式而移除。
 
-```
-cookie_token_v2=...
-```
-
-取法：開 https://genshin.hoyoverse.com/gift 登入 → DevTools → Application → Cookies → `https://genshin.hoyoverse.com` → 複製 `cookie_token_v2`。
-注意：在 hoyolab.com 重新登入只會換 `ltoken_v2`，不會換發 `cookie_token_v2`；舊值失效時務必從兌換頁重新登入取得。
-在同一瀏覽器切換登入另一個帳號會讓前一個帳號的 token 失效，操作第二個帳號請用無痕視窗。
-
-手動執行：`gh workflow run redeem.yml`
+手動執行：`gh workflow run codes.yml`
 
 ## 多帳號
 
@@ -54,11 +46,10 @@ cookie_token_v2=...
 gh variable set ACCOUNTS -b 'player1@MAIN:gi,hsr;player2@ALT:gi,zzz'
 ```
 
-名稱只用於通知顯示與 `redeemed.json`。`@` 後面是 secret 後綴，省略時等於名稱大寫；後綴 `MAIN` 代表無後綴的 secret（`HOYOLAB_COOKIE`、`HOYOLAB_REDEEM_COOKIE`），其他後綴直接接在 secret 名稱後：
+名稱只用於簽到通知顯示。`@` 後面是 secret 後綴，省略時等於名稱大寫；後綴 `MAIN` 代表無後綴的 secret（`HOYOLAB_COOKIE`），其他後綴直接接在 secret 名稱後：
 
 ```
 gh secret set HOYOLAB_COOKIE_ALT -b 'ltoken_v2=...; ltuid_v2=...'
-gh secret set HOYOLAB_REDEEM_COOKIE_ALT -b 'cookie_token_v2=...; account_mid_v2=...; account_id_v2=...'
 ```
 
-新帳號的 secret 名稱也要加進 `.github/workflows/checkin.yml` 與 `redeem.yml` 的 `env` 區塊（GitHub 不允許一次傳入全部 secrets）。通知合併在同一則 Discord 訊息，以帳號名稱分段。
+新帳號的 secret 名稱也要加進 `.github/workflows/checkin.yml` 的 `env` 區塊（GitHub 不允許一次傳入全部 secrets）。簽到通知合併在同一則 Discord 訊息，以帳號名稱分段；兌換碼通知以遊戲分段，不分帳號。
