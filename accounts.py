@@ -1,7 +1,7 @@
 """Shared multi-account config for checkin.py and codes.py.
 
 ACCOUNTS  repo variable, e.g. "player1@MAIN:gi,hsr;player2@ALT:zzz" (default "main:gi,hsr")
-          name       display label used in notifications and redeemed.json
+          name       display label used in check-in notifications
           @SUFFIX    optional secret suffix; defaults to NAME upper-cased
 Secrets are read from env vars; the workflow must list each account's secrets.
 
